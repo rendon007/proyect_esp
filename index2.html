@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESP32-CAM - Guía Completa</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #0a0e27;
+            color: #fff;
+            line-height: 1.6;
+        }
+        
+        .hero {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            padding: 80px 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><defs><pattern id="grid" width="100" height="100" patternUnits="userSpaceOnUse"><path d="M 100 0 L 0 0 0 100" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1"/></pattern></defs><rect width="100%" height="100%" fill="url(%23grid)"/></svg>');
+            opacity: 0.3;
+        }
+        
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .hero h1 {
+            font-size: 3.5em;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .hero p {
+            font-size: 1.3em;
+            opacity: 0.9;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 60px 20px;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 60px;
+        }
+        
+        .card {
+            background: #1a1f3a;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            transition: transform 0.3s, box-shadow 0.3s;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(42, 82, 152, 0.4);
+        }
+        
+        .card-icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+            display: block;
+        }
+        
+        .card h3 {
+            color: #4a9eff;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+        
+        .full-width {
+            background: #1a1f3a;
+            border-radius: 15px;
+            padding: 40px;
+            margin-bottom: 40px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .full-width h2 {
+            color: #4a9eff;
+            font-size: 2.2em;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #4a9eff;
+        }
+        
+        .code-block {
+            background: #0d1117;
+            border-radius: 10px;
+            padding: 25px;
+            overflow-x: auto;
+            margin: 25px 0;
+            border: 1px solid #30363d;
+        }
+        
+        pre {
+            color: #c9d1d9;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.7;
+            margin: 0;
+        }
+        
+        .step-list {
+            list-style: none;
+            counter-reset: step-counter;
+        }
+        
+        .step-list li {
+            counter-increment: step-counter;
+            margin: 20px 0;
+            padding-left: 50px;
+            position: relative;
+        }
+        
+        .step-list li::before {
+            content: counter(step-counter);
+            position: absolute;
+            left: 0;
+            top: 0;
+            background: linear-gradient(135deg, #4a9eff 0%, #2a5298 100%);
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+        
+        .download-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #4a9eff 0%, #2a5298 100%);
+            color: white;
+            padding: 15px 35px;
+            text-decoration: none;
+            border-radius: 50px;
+            margin: 10px 10px 10px 0;
+            transition: transform 0.3s, box-shadow 0.3s;
+            font-weight: bold;
+            box-shadow: 0 5px 15px rgba(74, 158, 255, 0.3);
+        }
+        
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(74, 158, 255, 0.5);
+        }
+        
+        .img-container {
+            background: #0d1117;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .img-container img {
+            max-width: 100%;
+            border-radius: 8px;
+            border: 2px solid #30363d;
+        }
+        
+        .img-caption {
+            margin-top: 15px;
+            color: #8b949e;
+            font-style: italic;
+        }
+        
+        .connections-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        
+        .connections-table th,
+        .connections-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #30363d;
+        }
+        
+        .connections-table th {
+            background: #0d1117;
+            color: #4a9eff;
+            font-weight: bold;
+        }
+        
+        .connections-table tr:hover {
+            background: rgba(74, 158, 255, 0.1);
+        }
+        
+        .warning-box {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 5px solid #ff4757;
+        }
+        
+        .info-box {
+            background: linear-gradient(135deg, #4a9eff 0%, #2a5298 100%);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 5px solid #1e88e5;
+        }
+        
+        ul {
+            margin-left: 20px;
+        }
+        
+        li {
+            margin: 10px 0;
+        }
+        
+        code {
+            background: #0d1117;
+            padding: 3px 8px;
+            border-radius: 4px;
+            color: #4a9eff;
+            font-family: 'Courier New', monospace;
+        }
+        
+        a {
+            color: #4a9eff;
+            text-decoration: none;
+        }
+        
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="hero">
+        <div class="hero-content">
+            <h1>📹 ESP32-CAM</h1>
+            <p>Guía completa de implementación y streaming</p>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div class="grid">
+            <div class="card">
+                <span class="card-icon">💻</span>
+                <h3>Código Optimizado</h3>
+                <p>Código completo con todas las configuraciones necesarias para streaming de video en tiempo real.</p>
+            </div>
+            
+            <div class="card">
+                <span class="card-icon">🔌</span>
+                <h3>Conexión Simple</h3>
+                <p>Diagramas claros para conectar tu ESP32-CAM con programador FTDI.</p>
+            </div>
+            
+            <div class="card">
+                <span class="card-icon">⚡</span>
+                <h3>Setup Rápido</h3>
+                <p>Instrucciones paso a paso para tener tu cámara funcionando en minutos.</p>
+            </div>
+        </div>
+        
+        <div class="full-width">
+            <h2>📥 Descargas Necesarias</h2>
+            <p style="margin-bottom: 20px;">Descarga e instala estos componentes antes de comenzar:</p>
+            
+            <a href="https://www.arduino.cc/en/software" target="_blank" class="download-btn">⬇️ Arduino IDE</a>
+            <a href="https://www.silabs.com/developers/usb-to-uart-bridge-vcp-drivers" target="_blank" class="download-btn">⬇️ Driver CP210x</a>
+            <a href="https://sparks.gogo.co.nz/ch340.html" target="_blank" class="download-btn">⬇️ Driver CH340</a>
+            
+            <div class="info-box" style="margin-top: 30px;">
+                <h3 style="margin-bottom: 15px;">📦 Instalación de soporte ESP32:</h3>
+                <ol class="step-list">
+                    <li>Abre Arduino IDE</li>
+                    <li>Ve a: <strong>Archivo → Preferencias</strong></li>
+                    <li>En "URLs Adicionales de Gestor de Tarjetas" pega:<br>
+                        <code style="display: block; margin: 10px 0; padding: 10px;">https://dl.espressif.com/dl/package_esp32_index.json</code>
+                    </li>
+                    <li>Ve a: <strong>Herramientas → Placa → Gestor de tarjetas</strong></li>
+                    <li>Busca "ESP32" y selecciona el paquete de <strong>Espressif Systems</strong></li>
+                    <li>Click en <strong>Instalar</strong></li>
+                </ol>
+            </div>
+        </div>
+        
+        <div class="full-width">
+            <h2>💾 Código Completo</h2>
+            <div class="code-block">
+                <pre>/*
+ * ESP32-CAM Web Server con Streaming
+ * Modelo: AI-Thinker ESP32-CAM
+ * Cámara: OV2640
+ */
+
+#include "esp_camera.h"
+#include "WiFi.h"
+#include "esp_timer.h"
+#include "img_converters.h"
+#include "Arduino.h"
+#include "soc/soc.h"
+#include "soc/rtc_cntl_reg.h"
+
+// ============ CONFIGURACIÓN WIFI ============
+const char* ssid = "TU_WIFI";
+const char* password = "TU_CONTRASEÑA";
+
+// ============ PINES ESP32-CAM AI-Thinker ============
+#define PWDN_GPIO_NUM     32
+#define RESET_GPIO_NUM    -1
+#define XCLK_GPIO_NUM      0
+#define SIOD_GPIO_NUM     26
+#define SIOC_GPIO_NUM     27
+#define Y9_GPIO_NUM       35
+#define Y8_GPIO_NUM       34
+#define Y7_GPIO_NUM       39
+#define Y6_GPIO_NUM       36
+#define Y5_GPIO_NUM       21
+#define Y4_GPIO_NUM       19
+#define Y3_GPIO_NUM       18
+#define Y2_GPIO_NUM        5
+#define VSYNC_GPIO_NUM    25
+#define HREF_GPIO_NUM     23
+#define PCLK_GPIO_NUM     22
+#define LED_FLASH          4
+
+void startCameraServer();
+
+void setup() {
+  WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0);
+  
+  Serial.begin(115200);
+  Serial.println("\n🎥 Iniciando ESP32-CAM...");
+
+  pinMode(LED_FLASH, OUTPUT);
+  digitalWrite(LED_FLASH, LOW);
+
+  // ============ CONFIG CÁMARA ============
+  camera_config_t config;
+  config.ledc_channel = LEDC_CHANNEL_0;
+  config.ledc_timer = LEDC_TIMER_0;
+  config.pin_d0 = Y2_GPIO_NUM;
+  config.pin_d1 = Y3_GPIO_NUM;
+  config.pin_d2 = Y4_GPIO_NUM;
+  config.pin_d3 = Y5_GPIO_NUM;
+  config.pin_d4 = Y6_GPIO_NUM;
+  config.pin_d5 = Y7_GPIO_NUM;
+  config.pin_d6 = Y8_GPIO_NUM;
+  config.pin_d7 = Y9_GPIO_NUM;
+  config.pin_xclk = XCLK_GPIO_NUM;
+  config.pin_pclk = PCLK_GPIO_NUM;
+  config.pin_vsync = VSYNC_GPIO_NUM;
+  config.pin_href = HREF_GPIO_NUM;
+  config.pin_sscb_sda = SIOD_GPIO_NUM;
+  config.pin_sscb_scl = SIOC_GPIO_NUM;
+  config.pin_pwdn = PWDN_GPIO_NUM;
+  config.pin_reset = RESET_GPIO_NUM;
+  config.xclk_freq_hz = 20000000;
+  config.pixel_format = PIXFORMAT_JPEG;
+
+  if(psramFound()){
+    config.frame_size = FRAMESIZE_UXGA;
+    config.jpeg_quality = 10;
+    config.fb_count = 2;
+    Serial.println("✓ PSRAM detectado");
+  } else {
+    config.frame_size = FRAMESIZE_SVGA;
+    config.jpeg_quality = 12;
+    config.fb_count = 1;
+    Serial.println("⚠ Sin PSRAM - resolución limitada");
+  }
+
+  esp_err_t err = esp_camera_init(&config);
+  if (err != ESP_OK) {
+    Serial.printf("❌ Error cámara: 0x%x\n", err);
+    return;
+  }
+  Serial.println("✓ Cámara OK");
+
+  // Ajustes del sensor
+  sensor_t * s = esp_camera_sensor_get();
+  s->set_brightness(s, 0);
+  s->set_contrast(s, 0);
+  s->set_saturation(s, 0);
+  s->set_whitebal(s, 1);
+  s->set_awb_gain(s, 1);
+  s->set_exposure_ctrl(s, 1);
+  s->set_gain_ctrl(s, 1);
+  s->set_hmirror(s, 0);
+  s->set_vflip(s, 0);
+
+  // ============ WIFI ============
+  WiFi.begin(ssid, password);
+  Serial.print("Conectando");
+  
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  
+  Serial.println("\n✓ WiFi conectado");
+  Serial.print("📡 IP: ");
+  Serial.println(WiFi.localIP());
+
+  startCameraServer();
+
+  Serial.println("\n🚀 Servidor activo");
+  Serial.print("🌐 http://");
+  Serial.println(WiFi.localIP());
+}
+
+void loop() {
+  delay(10000);
+}</pre>
+            </div>
+        </div>
+        
+        <div class="full-width">
+            <h2>🖼️ Conexiones y Diagramas</h2>
+            
+            <div class="img-container">
+                <img src="https://i0.wp.com/randomnerdtutorials.com/wp-content/uploads/2020/03/ESP32-CAM-pinout-new.png" alt="Pinout ESP32-CAM">
+                <p class="img-caption">Pinout completo ESP32-CAM AI-Thinker</p>
+            </div>
+            
+            <h3 style="color: #4a9eff; margin: 30px 0 20px;">Tabla de Conexiones FTDI:</h3>
+            <table class="connections-table">
+                <thead>
+                    <tr>
+                        <th>ESP32-CAM</th>
+                        <th>FTDI/USB-TTL</th>
+                        <th>Notas</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>GND</strong></td>
+                        <td>GND</td>
+                        <td>Tierra común</td>
+                    </tr>
+                    <tr>
+                        <td><strong>5V</strong></td>
+                        <td>VCC (5V)</td>
+                        <td>Alimentación 5V/2A mínimo</td>
+                    </tr>
+                    <tr>
+                        <td><strong>U0R</strong></td>
+                        <td>TX</td>
+                        <td>Recepción de datos</td>
+                    </tr>
+                    <tr>
+                        <td><strong>U0T</strong></td>
+                        <td>RX</td>
+                        <td>Transmisión de datos</td>
+                    </tr>
+                    <tr>
+                        <td><strong>GPIO 0</strong></td>
+                        <td>GND</td>
+                        <td>⚠️ Solo al programar, luego desconectar</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div class="img-container">
+                <img src="https://i0.wp.com/randomnerdtutorials.com/wp-content/uploads/2019/12/ESP32-CAM-FTDI-programmer-5V-supply.png" alt="Conexión FTDI">
+                <p class="img-caption">Esquema de conexión con programador FTDI</p>
+            </div>
+            
+            <div class="img-container">
+                <img src="https://components101.com/sites/default/files/component_pin/ESP32-CAM-Pinout.png" alt="ESP32-CAM">
+                <p class="img-caption">Vista física de la ESP32-CAM</p>
+            </div>
+        </div>
+        
+        <div class="full-width">
+            <h2>⚙️ Configuración Arduino IDE</h2>
+            <ol class="step-list">
+                <li>Selecciona la placa:<br>
+                    <strong>Herramientas → Placa → ESP32 Arduino → AI Thinker ESP32-CAM</strong>
+                </li>
+                <li>Configura partición:<br>
+                    <strong>Partition Scheme → Huge APP (3MB No OTA/1MB SPIFFS)</strong>
+                </li>
+                <li>Frecuencia de flash:<br>
+                    <strong>Flash Frequency → 80MHz</strong>
+                </li>
+                <li>Velocidad de carga:<br>
+                    <strong>Upload Speed → 115200</strong>
+                </li>
+                <li>Selecciona puerto COM:<br>
+                    <strong>Herramientas → Puerto → [tu puerto COM]</strong>
+                </li>
+            </ol>
+        </div>
+        
+        <div class="full-width">
+            <h2>⚡ Proceso de Flasheo</h2>
+            
+            <div class="warning-box">
+                <strong>⚠️ IMPORTANTE:</strong> La ESP32-CAM requiere alimentación estable de 5V con al menos 2A. Una fuente débil causará reinicios aleatorios.
+            </div>
+            
+            <ol class="step-list">
+                <li>Conecta todos los cables según la tabla de conexiones</li>
+                <li><strong>Conecta GPIO 0 a GND</strong> (modo programación)</li>
+                <li>Presiona el botón <strong>RESET</strong> en la ESP32-CAM</li>
+                <li>En Arduino IDE, click en <strong>Subir (→)</strong></li>
+                <li>Espera el mensaje: <code>"Hard resetting via RTS pin..."</code></li>
+                <li><strong>Desconecta GPIO 0 de GND</strong> inmediatamente</li>
+                <li>Presiona <strong>RESET</strong> nuevamente</li>
+                <li>Abre el Monitor Serie (115200 baud)</li>
+                <li>Verás la IP asignada en el monitor</li>
+            </ol>
+            
+            <div class="info-box">
+                <h3 style="margin-bottom: 15px;">📱 Acceso al Stream:</h3>
+                <p>Una vez conectado, accede desde tu navegador:</p>
+                <ul>
+                    <li><strong>http://[IP_ESP32]/</strong> → Interfaz completa con controles</li>
+                    <li><strong>http://[IP_ESP32]:81/stream</strong> → Stream directo</li>
+                </ul>
+                <p style="margin-top: 15px;">La IP aparece en el Monitor Serie al iniciar.</p>
+            </div>
+        </div>
+        
+        <div class="full-width">
+            <h2>🔧 Solución de Problemas</h2>
+            
+            <div class="card" style="margin-bottom: 20px;">
+                <h3>❌ No conecta al WiFi</h3>
+                <ul>
+                    <li>Verifica nombre y contraseña en el código</li>
+                    <li>Asegúrate de usar red 2.4GHz (no 5GHz)</li>
+                    <li>Revisa el Monitor Serie para ver errores</li>
+                </ul>
+            </div>
+            
+            <div class="card" style="margin-bottom: 20px;">
+                <h3>❌ Error al subir código</h3>
+                <ul>
+                    <li>GPIO 0 debe estar conectado a GND al presionar RESET</li>
+                    <li>Verifica que U0R va a TX y U0T va a RX</li>
+                    <li>Prueba reducir velocidad de carga a 57600</li>
+                    <li>Instala los drivers USB correctos</li>
+                </ul>
+            </div>
+            
+            <div class="card">
+                <h3>❌ Cámara no inicia</h3>
+                <ul>
+                    <li>Revisa la alimentación (5V/2A mínimo)</li>
+                    <li>Desconecta GPIO 0 después de programar</li>
+                    <li>Verifica que el cable de cámara esté bien conectado</li>
+                    <li>Presiona RESET después de subir el código</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
